@@ -1,0 +1,27 @@
+{
+  "name": "webgpu-fragment-shader",
+  "version": "0.0.0",
+  "description": "A WebGPU/WGSL fragment shader custom canvas element",
+  "homepage": "https://github.com/satori99/webgpu-fragment-shader#readme",
+  "author": "satori99",
+  "private": true,
+  "type": "module",
+  "main": "index.js",
+  "directories": {
+    "build": "build",
+    "test": "test"
+  },
+  "scripts": {
+    "rollup:build": "NODE_NO_WARNINGS=1 rollup -c",
+    "rollup:watch": "NODE_NO_WARNINGS=1 rollup -c -w",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/satori99/webgpu-fragment-shader.git"
+  },
+  "devDependencies": {
+    "rollup": "^3.2.5",
+    "rollup-plugin-string": "^3.0.0"
+  }
+}
