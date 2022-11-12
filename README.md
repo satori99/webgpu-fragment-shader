@@ -33,5 +33,6 @@ Adding an `is="webgpu-fragment-shader"` attribute to a regular canvas tag turn i
       }
     </script>
   </canvas>
+  <script type="module" src="https://github.satori99.com/webgpu-fragment-shader/webgpu-fragment-shader.js?define"></script>
   <figcaption>Fig1. Basic example</figcaption>
 </figure>
