@@ -26,14 +26,11 @@ Then add custom canvas elements to the page.
 
 Adding an `is="webgpu-fragment-shader"` attribute to a regular canvas tag turn it into a custom fragment shader element.
 
-<figure>
-  <canvas is="webgpu-fragment-shader" autoinit>
-    <script type="x-shader-x-wgsl">
-      @fragment fn main(@location(0) uv: vec2<f32>) -> @location(0) vec4<f32> {
-        return vec4(uv, 0, 1);
-      }
-    </script>
-  </canvas>
-  <figcaption>Fig1. Test Canvas</figcaption>
-</figure>
+<canvas is="webgpu-fragment-shader" autoinit>
+  <script type="x-shader-x-wgsl">
+    @fragment fn main(@location(0) uv: vec2<f32>) -> @location(0) vec4<f32> {
+      return vec4(uv, 0, 1);
+    }
+  </script>
+</canvas>
 
