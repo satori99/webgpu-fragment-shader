@@ -19,6 +19,28 @@ class WebGPUFragmentShaderElement extends HTMLCanvasElement {
 
     }
 
+    connectedCallback () {
+
+        if ( ! this.autoinit || this.#init !== null ) return
+
+        this.init().then( () => {
+
+            console.debug( 'autoinit success' );
+
+        } ).catch( err => {
+
+            console.error( 'autoinit failed:', err );
+
+        } );
+
+    }
+
+    disconnectedCallback () {
+
+        this.destroy();
+
+    }
+
     // Properties
 
     get autoinit () {
