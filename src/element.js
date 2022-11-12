@@ -19,6 +19,36 @@ export default class WebGPUFragmentShaderElement extends HTMLCanvasElement {
 
         console.debug( 'attribute %s changed:', name, oldValue, newValue )
 
+        switch ( name ) {
+            case 'width':
+            case 'height':
+                break;
+           case 'entry':
+                break;
+        }
+
+    }
+
+    connectedCallback () {
+
+        if ( ! this.autoinit || this.#init !== null ) return
+
+        this.init().then( () => {
+
+            console.debug( 'autoinit success' )
+
+        } ).catch( err => {
+
+            console.error( 'autoinit failed:', err )
+
+        } )
+
+    }
+
+    disconnectedCallback () {
+
+        this.destroy()
+
     }
 
     // Properties
