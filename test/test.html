@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en" color-mode="user">
+  <head>
+    <meta charset="utf-8"/>
+    <title>Test Shader</title>
+    <link rel="shortcut icon" type="image/x-icon" href="data:image/x-icon;,"/>
+  </head>
+  <body>
+    <h1></h1>
+    <hr/>
+    <figure>
+      <div>
+        <canvas id="viewport" is="webgpu-fragment-shader">
+          <script type="x-shader/x-wgsl">
+@fragment fn main(@location(0) uv: vec2<f32>) -> @location(0) vec4<f32> {
+  return vec4(uv, 0, 1);
+}
+          </script>
+        </canvas>
+        <div>
+          <span id="message"></span>
+        </div>
+      </div>
+      <figcaption></figcaption>
+    </figure>
+  </body>
+</html>
