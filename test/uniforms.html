@@ -42,8 +42,7 @@ const el = document.getElementById( 'viewport' )
 const elMessage = document.getElementById( 'message' )
 
 function animate ( time ) {
-    el.uniforms.time = time / 1000
-    el.render()
+    el.render( time / 1000 )
     requestAnimationFrame( animate )
 }
 

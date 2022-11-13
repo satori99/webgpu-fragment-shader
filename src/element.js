@@ -281,7 +281,9 @@ export default class WebGPUFragmentShaderElement extends HTMLCanvasElement {
 
     }
 
-    async render () {
+    async render ( time = 0 ) {
+        
+        this.#uniforms.time = time
 
         this.#device.queue.writeBuffer(
                 this.#uniformsBuffer, 0,
