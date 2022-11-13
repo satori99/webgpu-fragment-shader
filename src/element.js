@@ -6,10 +6,17 @@ export default class WebGPUFragmentShaderElement extends HTMLCanvasElement {
 
     // private state
 
-    #init = null    // Promise
-    #adapter = null // GPUAdapter
-    #device = null  // GPUDevice
-    #context = null // GPUCanvasContext
+    #init = null           // Promise
+    #fragmentCode = null   // string
+    #adapter = null        // GPUAdapter
+    #device = null         // GPUDevice
+    #context = null        // GPUCanvasContext
+    #uniforms = null       // object
+    #uniformsBuffer = null // GPUBuffer
+    #uniformsBindGroup = null // GPUBindGroup
+    #pipelineLayout = null // GPURenderPipelineLayout
+    #pipeline = null       // GPURenderPipeline
+
 
     // Custom Elements API
 
@@ -31,9 +38,13 @@ export default class WebGPUFragmentShaderElement extends HTMLCanvasElement {
 
     connectedCallback () {
 
+        console.debug( 'connected' )
+
         if ( ! this.autoinit || this.#init !== null ) return
 
         this.init().then( () => {
+
+            this.render()
 
             console.debug( 'autoinit success' )
 
@@ -46,6 +57,8 @@ export default class WebGPUFragmentShaderElement extends HTMLCanvasElement {
     }
 
     disconnectedCallback () {
+
+        console.debug( 'disconnected' )
 
         this.destroy()
 
@@ -77,10 +90,19 @@ export default class WebGPUFragmentShaderElement extends HTMLCanvasElement {
 
     async init () {
 
+
         return this.#init ??= ( async () => {
+
+            this.classList.remove( 'initialized' )
+            this.classList.remove( 'error' )
 
             if ( ! WebGPUFragmentShaderElement.supported ) {
                 throw new Error( 'WebGPU is not supported' )
+            }
+
+            this.#fragmentCode ??= await WebGPUFragmentShaderElement.getFragmentShaderSource( this )
+            if ( ! this.#fragmentCode ) {
+                throw new Error( 'No fragment shader source' )
             }
 
             this.#adapter ??= await navigator.gpu.requestAdapter()
@@ -96,7 +118,94 @@ export default class WebGPUFragmentShaderElement extends HTMLCanvasElement {
                 return this.init()
             }
 
-            this.#context = this.getContext( 'webgpu' )
+            this.#device.pushErrorScope( 'validation' )
+
+            // create render pipeline ...
+
+            // uniforms buffer
+
+            this.#uniforms = new class {
+
+                buffer = new ArrayBuffer( 12 )
+
+                #viewportSize = new Float32Array( this.buffer, 0, 2 )
+
+                #time = new Float32Array( this.buffer, 8, 1 )
+
+                get viewportSize () {
+                    return this.#viewportSize
+                }
+
+                get time () {
+                    return this.#time[ 0 ]
+                }
+
+                set time ( value ) {
+                    this.#time[ 0 ] = value
+                }
+
+            }
+
+            this.#uniformsBuffer ??= this.#device.createBuffer( {
+                size: this.#uniforms.buffer.byteLength,
+                usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+            } )
+
+            const uniformsBindGroupLayout = this.#device.createBindGroupLayout( {
+                entries: [
+                    {
+                        binding: 0,
+                        visibility: GPUShaderStage.FRAGMENT,
+                        buffer: {
+                            type: 'uniform',
+                            hasDynamicOffset: false,
+                            minBindingSize: 0
+                        },
+                    }
+                ]
+            } )
+
+            this.#uniformsBindGroup ??= this.#device.createBindGroup( {
+                layout: uniformsBindGroupLayout,
+                entries: [
+                    {
+                        binding: 0,
+                        resource: { buffer: this.#uniformsBuffer },
+                    }
+                ]
+            } )
+
+            // shaders
+
+            const vertexShader = this.#device.createShaderModule( { code: vertexCode } )
+
+            const fragmentShader = this.#device.createShaderModule( { code: this.#fragmentCode } )
+
+            // pipeline
+
+            this.#pipelineLayout ??= this.#device.createPipelineLayout( {
+                bindGroupLayouts: [ uniformsBindGroupLayout ]
+            } )
+
+            this.#pipeline = this.#device.createRenderPipeline( {
+                layout: this.#pipelineLayout,
+                vertex: {
+                    module: vertexShader,
+                    entryPoint: 'main',
+                },
+                fragment: {
+                    module: fragmentShader,
+                    entryPoint: this.entry,
+                    targets: [ { format: navigator.gpu.getPreferredCanvasFormat() } ],
+                },
+                primitive: { topology: 'triangle-strip' },
+            } )
+
+            const err = await this.#device.popErrorScope()
+
+            if ( err ) throw err
+
+            this.#context ??= this.getContext( 'webgpu' )
 
             this.#context.configure( {
                 alphaMode: 'opaque',
@@ -110,28 +219,78 @@ export default class WebGPUFragmentShaderElement extends HTMLCanvasElement {
                     this.#context.unconfigure()
                     this.dispatchEvent( new Event( 'destroyed' ) )
                 } else {
+                    this.#init = null
                     this.init()
                 }
             } )
 
+            this.classList.add( 'initialized' )
+
             this.dispatchEvent( new Event( 'initialized' ) )
 
+            console.debug( 'initialized' )
+
+        } )().catch( err => {
+
+            this.classList.add( 'error' )
+
+            this.destroy()
+
+            throw err
+
         } )
+
 
     }
 
     destroy () {
 
+        this.#uniformsBuffer?.destroy()
         this.#device?.destroy()
 
         this.#init = null
+        this.#fragmentCode = null
         this.#adapter = null
         this.#device = null
         this.#context = null
+        this.#uniforms = null
+        this.#uniformsBuffer = null
+        this.#uniformsBindGroup = null
+        this.#pipelineLayout = null
+        this.#pipeline = null
+
+        this.classList.remove( 'initialized' )
 
     }
 
     async render () {
+
+        this.#device.queue.writeBuffer(
+                this.#uniformsBuffer, 0,
+                this.#uniforms.buffer, 0,
+                this.#uniforms.buffer.byteLength )
+
+        const encoder = this.#device.createCommandEncoder()
+
+        const texture = this.#context.getCurrentTexture()
+
+        const pass = encoder.beginRenderPass( { colorAttachments: [ {
+            view: texture.createView(),
+            loadValue: { r: 0, g: 0, b: 0, a: 1 },
+            loadOp: 'clear',
+            storeOp: 'store',
+        } ] } )
+
+        pass.setPipeline( this.#pipeline )
+        pass.setBindGroup( 0, this.#uniformsBindGroup )
+        pass.setViewport( 0, 0, this.width, this.height, 0, 1 )
+        pass.setScissorRect( 0, 0, this.width, this.height )
+        pass.draw( 4 )
+        pass.end()
+
+        this.#device.queue.submit( [ encoder.finish() ] )
+
+        return this.#device.queue.onSubmittedWorkDone()
 
     }
 
@@ -139,9 +298,40 @@ export default class WebGPUFragmentShaderElement extends HTMLCanvasElement {
 
     static supported = 'gpu' in navigator
 
-    static define ( name = 'webgpu-fragment-shader' ) {
+    static defineElement ( name = 'webgpu-fragment-shader' ) {
+
+        console.debug( 'defining custom element:', name )
 
         customElements.define( name, WebGPUFragmentShaderElement, { extends: 'canvas' } )
+
+    }
+
+    static async getFragmentShaderSource ( el ) {
+
+        const scripts = el.querySelectorAll( 'script[type="x-shader/x-wgsl"]' )
+
+        const sources = await Promise.all( [ ...scripts ].map( script => {
+
+            if ( script.src ) {
+
+                return fetch( script.src ).then( res => {
+
+                    if ( ! res.ok ) throw new Error( 'Failed to fetch fragment shader source: ' + script.src )
+
+                    return res.text()
+
+                } )
+
+            } else {
+
+                return Promise.resolve( script.textContent )
+
+            }
+
+
+        } ) )
+
+        return sources.join( '\n' )
 
     }
 

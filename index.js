@@ -6,9 +6,19 @@ import WebGPUFragmentShaderElement from './src/element.js'
 //
 
 const url = new URL( '', import.meta.url )
+
 if ( url.searchParams.has( 'define' ) ) {
-    const tagName = url.searchParams.get( 'define' ) || 'webgpu-frgament-shader'
-    WebGPUFragmentShaderElement.define( tagName )
+
+    const tagName = url.searchParams.get( 'define' ) || 'webgpu-fragment-shader'
+
+    WebGPUFragmentShaderElement.defineElement( tagName )
+
+    customElements.whenDefined( tagName ).then( () => {
+
+        console.debug( 'defined custom element:', tagName )
+
+    } )
+
 }
 
 export default WebGPUFragmentShaderElement
