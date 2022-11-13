@@ -1,0 +1,73 @@
+
+:root {
+    --color-background: #eee;
+    --color-text: #222;
+}
+
+html {
+    color: var(--color-text);
+    background-color: var(--color-background);
+    box-sizing: border-box;
+
+}
+
+*, *:before, *:after {
+    box-sizing: inherit;
+}
+
+body {
+    max-width: 80ch;
+    margin-inline: auto;
+    padding: 1em;
+}
+
+body > h1 {
+    text-align: center;
+}
+
+body > hr {}
+
+body > figure {
+    margin: 1em;
+}
+
+body > figure > div {
+    position: relative;
+}
+
+body > figure > div > canvas {
+    display: block;
+    width: 100%;
+}
+
+body > figure > div > div {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-flow: column nowrap;
+    justify-content: center;
+    align-items: center;
+    font-family: system-ui;
+    /* pointer-events: none; */
+    /* user-select: none; */
+}
+
+body > figure > figcaption {
+    text-align: center;
+    margin: 1em;
+}
+
+canvas[is="webgpu-fragment-shader"]:not(:defined) {
+    background-color: grey;
+}
+
+canvas[is="webgpu-fragment-shader"].initialized + div {
+    display: none;
+}
+
+canvas[is="webgpu-fragment-shader"].error + div:before {
+    content: "Damn. Something went wrong."
+}

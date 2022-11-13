@@ -4,97 +4,20 @@
     <meta charset="utf-8"/>
     <title>Test Shader</title>
     <link rel="shortcut icon" type="image/x-icon" href="data:image/x-icon;,"/>
+    <link rel="stylesheet" href="index.css"/>
     <script type="module" src="../build/webgpu-fragment-shader-0.0.0.js?define"></script>
-   <style>
-
-:root {
-    --color-background: #eee;
-    --color-text: #222;
-}
-
-html {
-    color: var(--color-text);
-    background-color: var(--color-background);
-    box-sizing: border-box;
-
-}
-
-*, *:before, *:after {
-    box-sizing: inherit;
-}
-
-body {
-    max-width: 80ch;
-    margin-inline: auto;
-    padding: 1em;
-}
-
-body > h1 {
-    text-align: center;
-}
-
-body > hr {}
-
-body > figure {
-    margin: 1em;
-}
-
-body > figure > div {
-    position: relative;
-}
-
-body > figure > div > canvas {
-    display: block;
-    width: 100%;
-}
-
-body > figure > div > div {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    display: flex;
-    flex-flow: column nowrap;
-    justify-content: center;
-    align-items: center;
-    font-family: system-ui;
-    /* pointer-events: none; */
-    /* user-select: none; */
-}
-
-
-canvas[is="webgpu-fragment-shader"]:not(:defined) {
-    background-color: grey;
-}
-
-canvas[is="webgpu-fragment-shader"].initialized + div {
-    display: none;
-}
-
-canvas[is="webgpu-fragment-shader"].error + div:before {
-    content: "Damn. Something went wrong."
-}
-
-   </style>
   </head>
   <body>
     <h1>WebGPU Fragment Shader Test</h1>
     <hr/>
-    <figure>
-      <div>
-        <canvas id="viewport" is="webgpu-fragment-shader" autoinit>
-          <script type="x-shader/x-wgsl">
-@fragment fn main(@location(0) uv: vec2<f32>) -> @location(0) vec4<f32> {
-  return vec4(uv, 0, 1);
-}
-          </script>
-        </canvas>
-        <div>
-          <span id="message"></span>
-        </div>
-      </div>
-      <figcaption>caption</figcaption>
-    </figure>
+    <p></p>
+    <ul>
+      <li>
+        <a href="basic.html">Basic Example</a>
+      </li>
+      <li>
+        <a href="uniforms.html">Uniforms Example</a>
+      </li>
+    </ul>
   </body>
 </html>

@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en" color-mode="user">
+  <head>
+    <meta charset="utf-8"/>
+    <title>Test Shader</title>
+    <link rel="shortcut icon" type="image/x-icon" href="data:image/x-icon;,"/>
+    <link rel="stylesheet" href="index.css"/>
+  </head>
+  <body>
+    <h1>WebGPU Fragment Shader Test</h1>
+    <hr/>
+    <figure>
+      <div>
+        <canvas id="viewport" is="webgpu-fragment-shader">
+          <script type="x-shader/x-wgsl">
+          
+struct Uniforms {
+    viewport_size: vec2<f32>,
+    time: f32,
+}          
+          
+@group(0) @binding(0) var<uniform> uniforms: Uniforms;          
+          
+@fragment fn main(@location(0) uv: vec2<f32>) -> @location(0) vec4<f32> {
+  return vec4(uv + vec2(sin(uniforms.time), cos(uniforms.time)), 0, 1);
+}
+          </script>
+        </canvas>
+        <div>
+          <span id="message"></span>
+        </div>
+      </div>
+      <figcaption>A basic fragment shader with uniforms example</figcaption>
+    </figure>
+    <script type="module">
+
+import WebGPUFragmentShaderElement from '../build/webgpu-fragment-shader-0.0.0.js'
+
+WebGPUFragmentShaderElement.defineElement()
+
+const el = document.getElementById( 'viewport' )
+const elMessage = document.getElementById( 'message' )
+
+function animate ( time ) {
+    el.uniforms.time = time / 1000
+    el.render()
+    requestAnimationFrame( animate )
+}
+
+await el.init()
+
+requestAnimationFrame( animate )
+
+    </script>
+  </body>
+</html>
