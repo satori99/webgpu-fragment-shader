@@ -26,6 +26,20 @@ class WebGPUFragmentShaderElement extends HTMLCanvasElement {
 
         console.debug( 'attribute %s changed:', name, oldValue, newValue );
 
+        switch ( name ) {
+            case 'width':
+            case 'height':
+                this.#uniforms?.viewportSize.set( [ this.width, this.height ] );
+                break;
+           case 'entry':
+                if ( this.#init ) {
+                    this.#init = null;
+                    this.destroy();
+                    this.init();
+                }
+                break;
+        }
+
     }
 
     connectedCallback () {
@@ -78,10 +92,15 @@ class WebGPUFragmentShaderElement extends HTMLCanvasElement {
         this.setAttribute( 'entry', value );
     }
 
+    get uniforms () {
+
+        return this.#uniforms
+
+    }
+
     //
 
     async init () {
-
 
         return this.#init ??= ( async () => {
 
@@ -114,7 +133,7 @@ class WebGPUFragmentShaderElement extends HTMLCanvasElement {
 
             // create render pipeline ...
 
-            // uniforms buffer
+            // builtin uniforms buffer
 
             this.#uniforms = new class {
 
@@ -138,7 +157,9 @@ class WebGPUFragmentShaderElement extends HTMLCanvasElement {
 
             };
 
-            this.#uniformsBuffer ??= this.#device.createBuffer( {
+            this.#uniforms.viewportSize.set( [ this.width, this.height ] );
+
+            this.#uniformsBuffer = this.#device.createBuffer( {
                 size: this.#uniforms.buffer.byteLength,
                 usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
             } );
@@ -157,7 +178,7 @@ class WebGPUFragmentShaderElement extends HTMLCanvasElement {
                 ]
             } );
 
-            this.#uniformsBindGroup ??= this.#device.createBindGroup( {
+            this.#uniformsBindGroup = this.#device.createBindGroup( {
                 layout: uniformsBindGroupLayout,
                 entries: [
                     {
@@ -167,6 +188,10 @@ class WebGPUFragmentShaderElement extends HTMLCanvasElement {
                 ]
             } );
 
+            // user uniforms ...
+
+            // user buffer ...
+
             // shaders
 
             const vertexShader = this.#device.createShaderModule( { code: vertexCode } );
@@ -175,7 +200,7 @@ class WebGPUFragmentShaderElement extends HTMLCanvasElement {
 
             // pipeline
 
-            this.#pipelineLayout ??= this.#device.createPipelineLayout( {
+            this.#pipelineLayout = this.#device.createPipelineLayout( {
                 bindGroupLayouts: [ uniformsBindGroupLayout ]
             } );
 
@@ -208,7 +233,7 @@ class WebGPUFragmentShaderElement extends HTMLCanvasElement {
 
             this.#device.lost.then( ( { reason } ) => {
                 if ( reason === 'destroyed' ) {
-                    this.#context.unconfigure();
+                    this.#context?.unconfigure();
                     this.dispatchEvent( new Event( 'destroyed' ) );
                 } else {
                     this.#init = null;
@@ -239,6 +264,7 @@ class WebGPUFragmentShaderElement extends HTMLCanvasElement {
 
         this.#uniformsBuffer?.destroy();
         this.#device?.destroy();
+        this.#context?.unconfigure();
 
         this.#init = null;
         this.#fragmentCode = null;
