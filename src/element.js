@@ -321,6 +321,12 @@ export default class WebGPUFragmentShaderElement extends HTMLCanvasElement {
         console.debug( 'defining custom element:', name )
 
         customElements.define( name, WebGPUFragmentShaderElement, { extends: 'canvas' } )
+        
+        customElements.whenDefined( name ).then( () => {
+        
+            console.debug( 'webgpu-fragment-shader is deifned' )
+        
+        } )
 
     }
 
