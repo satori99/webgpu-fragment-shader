@@ -281,7 +281,9 @@ class WebGPUFragmentShaderElement extends HTMLCanvasElement {
 
     }
 
-    async render () {
+    async render ( time = 0 ) {
+        
+        this.#uniforms.time = time;
 
         this.#device.queue.writeBuffer(
                 this.#uniformsBuffer, 0,
@@ -321,6 +323,12 @@ class WebGPUFragmentShaderElement extends HTMLCanvasElement {
         console.debug( 'defining custom element:', name );
 
         customElements.define( name, WebGPUFragmentShaderElement, { extends: 'canvas' } );
+        
+        customElements.whenDefined( name ).then( () => {
+        
+            console.debug( 'webgpu-fragment-shader is deifned' );
+        
+        } );
 
     }
 
